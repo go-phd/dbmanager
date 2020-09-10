@@ -3,86 +3,130 @@ package models
 import (
 	"errors"
 	"strconv"
-	"time"
-)
 
-var (
-	UserList map[string]*User
+	"github.com/astaxie/beego/orm"
+	"github.com/go-phd/ssf"
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
-	UserList = make(map[string]*User)
-	u1 := User{"user1", "astaxie", "11111", Profile{"male", 20, "Singapore", "astaxie@gmail.com"}}
-	u2 := User{"user2", "astaxie", "11111", Profile{"male", 20, "Singapore", "astaxie@gmail.com"}}
-	UserList["user1"] = &u1
-	UserList["user2"] = &u2
+	orm.RegisterModel(new(User))
+	ssf.Logger.Infoln("user table init success.")
 }
 
+// User 用户表
 type User struct {
-	Id       string
+	ID       int64 //主键
 	Username string
 	Password string
-	Profile  Profile
 }
 
-type Profile struct {
-	Gender  string
-	Age     int
-	Address string
-	Email   string
-}
+// AddUser 添加用户
+func AddUser(u User) (string, error) {
 
-func AddUser(u User) string {
-	u.Id = "user_" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	UserList[u.Id] = &u
-	return u.Id
-}
-
-func GetUser(uid string) (u *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		return u, nil
+	// Username 不能相同
+	_, err := GetUser(u.Username)
+	if err == nil {
+		errStr := "Username is already exist."
+		ssf.Logger.WithFields(logrus.Fields{
+			"Username": u.Username,
+		}).Errorln(errStr)
+		return "", errors.New(errStr)
 	}
-	return nil, errors.New("User not exists")
-}
 
-func GetAllUsers() map[string]*User {
-	return UserList
-}
-
-func UpdateUser(uid string, uu *User) (a *User, err error) {
-	if u, ok := UserList[uid]; ok {
-		if uu.Username != "" {
-			u.Username = uu.Username
-		}
-		if uu.Password != "" {
-			u.Password = uu.Password
-		}
-		if uu.Profile.Age != 0 {
-			u.Profile.Age = uu.Profile.Age
-		}
-		if uu.Profile.Address != "" {
-			u.Profile.Address = uu.Profile.Address
-		}
-		if uu.Profile.Gender != "" {
-			u.Profile.Gender = uu.Profile.Gender
-		}
-		if uu.Profile.Email != "" {
-			u.Profile.Email = uu.Profile.Email
-		}
-		return u, nil
+	// 主键不可设置，只能累加
+	u.ID = 0
+	ret, err := orm.NewOrm().Insert(&u)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("insert failed.")
+		return "", errors.New("Failed to add a new user.")
 	}
-	return nil, errors.New("User Not Exist")
+
+	return strconv.FormatInt(ret, 10), nil
 }
 
-func Login(username, password string) bool {
-	for _, u := range UserList {
-		if u.Username == username && u.Password == password {
-			return true
-		}
+// GetUser 获取一条用户，支持通过用户名查找
+func GetUser(name string) (*User, error) {
+	var user User
+
+	err := orm.NewOrm().QueryTable("user").Filter("Username", name).One(&user)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Read failed.")
 	}
-	return false
+
+	ssf.Logger.Debugln(user)
+
+	return &user, err
 }
 
-func DeleteUser(uid string) {
-	delete(UserList, uid)
+// GetAllUsers 返回全部用户信息
+func GetAllUsers() ([]*User, error) {
+	var users []*User
+
+	num, err := orm.NewOrm().QueryTable("user").All(&users)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Read failed.")
+		return nil, err
+	}
+
+	ssf.Logger.Debugln(num, err)
+	return users, nil
+}
+
+// UpdateUser 更新一条用户信息
+func UpdateUser(name string, user *User) error {
+	ssf.Logger.Debugln(user)
+	ssf.Logger.Debugln(name)
+
+	num, err := orm.NewOrm().QueryTable("user").Filter("Username", name).Update(orm.Params{
+		"Username": user.Username,
+		"Password": user.Password,
+	})
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Update failed.")
+		return err
+	}
+
+	if num == 0 {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Update failed.")
+		return errors.New("User Not Exist")
+	}
+
+	ssf.Logger.Debugln(num, err)
+
+	return nil
+}
+
+// DeleteUser 删除用户
+func DeleteUser(name string) error {
+	ssf.Logger.Debugln(name)
+
+	num, err := orm.NewOrm().QueryTable("user").Filter("Username", name).Delete()
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Delete failed.")
+		return err
+	}
+
+	if num == 0 {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Update failed.")
+		return errors.New("User Not Exist")
+	}
+
+	ssf.Logger.Debugln(num, err)
+
+	return nil
 }
