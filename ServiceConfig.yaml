@@ -2,7 +2,7 @@ name : "DBManager"
 version : 100
 
 logger:
-  logLevel : "warning"                       # 打印级别 support debug/info/warning/error
+  logLevel : "debug"                       # 打印级别 support debug/info/warning/error
   logOutToFile : false                     # 日志是否输出至文件
   logRotationSize : 10485760              # 文件切割大小 10MB
   logRotationCount : 14                   # 最多保存文件个数
@@ -12,10 +12,8 @@ rest:
 
 
 limit:
-  enable : false
+  enable : false    
   cpuset : "1"          #cpu core id
   memory : "20m"        #限制的内存容量
 
-reporter:
-  enable : true
 

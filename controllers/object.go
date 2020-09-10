@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego"
+	"github.com/go-phd/ssf"
 )
 
 // Operations about object
@@ -72,6 +73,7 @@ func (o *ObjectController) Get() {
 // @router / [get]
 func (o *ObjectController) GetAll() {
 	obs := models.GetAll()
+	ssf.Logger.Debugln(obs)
 	o.Data["json"] = obs
 	o.ServeJSON()
 }

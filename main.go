@@ -15,5 +15,5 @@ func main() {
 	// 初始化dbmanager
 	Init()
 
-	//beego.Run()
+	beego.Run()
 }

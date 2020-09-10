@@ -14,9 +14,9 @@ type CshareGroup struct {
 
 // CshareGroupTable 共享群组表结构
 type CshareGroupTable struct {
-	name       string
-	reserveint int64
-	reservestr string
+	Name       string
+	Reserveint int64
+	Reservestr string
 }
 
 // ShareGroup CshareGroup全局对象
@@ -27,8 +27,8 @@ func initGroupTable() error {
 
 	sqlStmt := `
 	create table if not exists ShareGroup (name text not null primary key, 
-		reserveint integer,
-		reservestr text,
+		Reserveint integer,
+		Reservestr text,
 		ts timestamp not null default(datetime('now','localtime')));
 	`
 	_, err := SQLDB.Exec(sqlStmt)
@@ -41,23 +41,23 @@ func initGroupTable() error {
 	/*
 		cgt := CshareGroupTable{
 			name:       "new1",
-			reserveint: 666,
-			reservestr: "66666",
+			Reserveint: 666,
+			Reservestr: "66666",
 		}*/
 
 	//_ = cg.Insert(cgt)
 
 	//time.Sleep(time.Duration(5) * time.Second)
 
-	//cgt.reserveint = 000
-	//cgt.reservestr = "000"
+	//cgt.Reserveint = 000
+	//cgt.Reservestr = "000"
 	//_ = cg.Update(cgt)
 
 	//_ = cg.Delete(cgt)
 
 	//cgts, _ := cg.QueueAll()
-	cgts, _ := cg.Queue("new2")
-	ssf.Logger.Warningln(cgts)
+	//cgts, _ := cg.Queue("new2")
+	//ssf.Logger.Warningln(cgts)
 
 	ShareGroup = &cg
 
@@ -67,6 +67,7 @@ func initGroupTable() error {
 }
 
 // QueueAll 查询全部
+//func (cg *CshareGroup) QueueAll() (map[string]*CshareGroupTable, error) {
 func (cg *CshareGroup) QueueAll() ([]CshareGroupTable, error) {
 	sqlStmt := fmt.Sprintf(`select * from ShareGroup`)
 	rows, err := SQLDB.Query(sqlStmt)
@@ -77,15 +78,16 @@ func (cg *CshareGroup) QueueAll() ([]CshareGroupTable, error) {
 	}
 	defer rows.Close()
 
+	//shareGroupTable := make(map[string]*CshareGroupTable)
 	shareGroupTable := make([]CshareGroupTable, 0)
 
 	for rows.Next() {
 		var name string
-		var reserveint int64
-		var reservestr string
+		var Reserveint int64
+		var Reservestr string
 		var ts time.Time
 
-		err = rows.Scan(&name, &reserveint, &reservestr, &ts)
+		err = rows.Scan(&name, &Reserveint, &Reservestr, &ts)
 		if err != nil {
 			ssf.Logger.WithFields(logrus.Fields{
 				"err": err,
@@ -96,11 +98,12 @@ func (cg *CshareGroup) QueueAll() ([]CshareGroupTable, error) {
 		//ssf.Logger.Warningln(ts)
 
 		sg := CshareGroupTable{
-			name:       name,
-			reserveint: reserveint,
-			reservestr: reservestr,
+			Name:       name,
+			Reserveint: Reserveint,
+			Reservestr: Reservestr,
 		}
 
+		//shareGroupTable[name] = &sg
 		shareGroupTable = append(shareGroupTable, sg)
 	}
 
@@ -115,7 +118,7 @@ func (cg *CshareGroup) QueueAll() ([]CshareGroupTable, error) {
 }
 
 // Queue 查询一行数据
-func (cg *CshareGroup) Queue(n string) (*CshareGroupTable, error) {
+func (cg *CshareGroup) Queue(name string) (*CshareGroupTable, error) {
 	stmt, err := SQLDB.Prepare("select * from ShareGroup where name = ?")
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
@@ -125,12 +128,12 @@ func (cg *CshareGroup) Queue(n string) (*CshareGroupTable, error) {
 	}
 	defer stmt.Close()
 
-	var name string
-	var reserveint int64
-	var reservestr string
+	var Name string
+	var Reserveint int64
+	var Reservestr string
 	var ts time.Time
 
-	err = stmt.QueryRow(n).Scan(&name, &reserveint, &reservestr, &ts)
+	err = stmt.QueryRow(name).Scan(&Name, &Reserveint, &Reservestr, &ts)
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
 			"err": err,
@@ -138,66 +141,20 @@ func (cg *CshareGroup) Queue(n string) (*CshareGroupTable, error) {
 	}
 
 	sg := CshareGroupTable{
-		name:       name,
-		reserveint: reserveint,
-		reservestr: reservestr,
+		Name:       Name,
+		Reserveint: Reserveint,
+		Reservestr: Reservestr,
 	}
 
 	return &sg, err
-
-	/*
-
-		rows, err := SQLDB.Query(sqlStmt)
-		if err != nil {
-			ssf.Logger.WithFields(logrus.Fields{
-				"err": err,
-			}).Errorf("select failed.")
-		}
-		defer rows.Close()
-
-		var sg CshareGroupTable
-		for rows.Next() {
-			var name string
-			var reserveint int64
-			var reservestr string
-			var ts time.Time
-
-			err = rows.Scan(&name, &reserveint, &reservestr, &ts)
-			if err != nil {
-				ssf.Logger.WithFields(logrus.Fields{
-					"err": err,
-				}).Errorf("rows scan failed.")
-				break
-			}
-
-			//ssf.Logger.Warningln(ts)
-
-			sg = CshareGroupTable{
-				name:       name,
-				reserveint: reserveint,
-				reservestr: reservestr,
-			}
-
-			break
-		}
-
-		err = rows.Err()
-		if err != nil {
-			ssf.Logger.WithFields(logrus.Fields{
-				"err": err,
-			}).Errorf("rows failed.")
-		}
-
-		return &sg, err
-	*/
 }
 
 // Insert 插入一行数据
 func (cg *CshareGroup) Insert(data CshareGroupTable) error {
-	sqlStmt := fmt.Sprintf(`insert into ShareGroup(name, reserveint, reservestr) values('%s', %d, '%s')`,
-		data.name,
-		data.reserveint,
-		data.reservestr)
+	sqlStmt := fmt.Sprintf(`insert into ShareGroup(name, Reserveint, Reservestr) values('%s', %d, '%s')`,
+		data.Name,
+		data.Reserveint,
+		data.Reservestr)
 	_, err := SQLDB.Exec(sqlStmt)
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
@@ -210,10 +167,10 @@ func (cg *CshareGroup) Insert(data CshareGroupTable) error {
 
 // Update 更新一行数据
 func (cg *CshareGroup) Update(data CshareGroupTable) error {
-	sqlStmt := fmt.Sprintf(`update ShareGroup set reserveint = %d, reservestr = '%s' where name = '%s'`,
-		data.reserveint,
-		data.reservestr,
-		data.name)
+	sqlStmt := fmt.Sprintf(`update ShareGroup set Reserveint = %d, Reservestr = '%s' where name = '%s'`,
+		data.Reserveint,
+		data.Reservestr,
+		data.Name)
 	_, err := SQLDB.Exec(sqlStmt)
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
@@ -225,9 +182,9 @@ func (cg *CshareGroup) Update(data CshareGroupTable) error {
 }
 
 // Delete 删除一行数据
-func (cg *CshareGroup) Delete(data CshareGroupTable) error {
+func (cg *CshareGroup) Delete(name string) error {
 	sqlStmt := fmt.Sprintf(`delete from ShareGroup where name = '%s'`,
-		data.name)
+		name)
 	_, err := SQLDB.Exec(sqlStmt)
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
