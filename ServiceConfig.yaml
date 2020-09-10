@@ -10,7 +10,6 @@ logger:
 rest:
   serverPort : 30001
 
-
 limit:
   enable : true
   cpuset : "0"            #cpu core id
