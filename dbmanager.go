@@ -64,7 +64,7 @@ func dbSyncnotifyCB(arg interface{}) interface{} {
 	if ds.UUID == ssf.Ssf.GetUUID() {
 		ssf.Logger.WithFields(logrus.Fields{
 			"uuid": ds.UUID,
-		}).Errorln("Ignore local operations.")
+		}).Warningln("Ignore local operations.")
 		return nil
 	}
 

@@ -114,8 +114,8 @@ func UpdateUser(name string, u User) error {
 	if num == 0 {
 		ssf.Logger.WithFields(logrus.Fields{
 			"err": err,
-		}).Errorln("User Not Exist.")
-		return errors.New("User Not Exist")
+		}).Errorln("User not exist.")
+		return errors.New("User not exist.")
 	}
 
 	// 发送 update 广播
@@ -154,8 +154,8 @@ func DeleteUser(name string) error {
 	if num == 0 {
 		ssf.Logger.WithFields(logrus.Fields{
 			"err": err,
-		}).Errorln("User Not Exist.")
-		return errors.New("User Not Exist")
+		}).Errorln("User not exist.")
+		return errors.New("User not exist.")
 	}
 
 	// 发送 delete 广播
