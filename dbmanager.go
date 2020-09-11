@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/go-phd/dbmanager/models"
 	"github.com/go-phd/ssf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -35,5 +36,82 @@ func init() {
 		return
 	}
 
+	// 注册数据库同步 notify， 在有些操作时广播，每个微服务实例都会收到
+	err = ssf.MQ.RegisterNotifyMethod(models.DbSyncNotify, dbSyncnotifyCB, false)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("RegisterNotifyMethod failed.")
+		return
+	}
+
 	ssf.Logger.Infoln("main init success.")
+}
+
+// dbSyncnotifyCB 数据库同步广播回调
+func dbSyncnotifyCB(arg interface{}) interface{} {
+	ds := &models.DbSyncDes{}
+
+	data := arg.([]byte)
+	err := ssf.Serializer.Unmarshal(data, ds)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Unmarshal failed.")
+		return nil
+	}
+
+	if ds.UUID == ssf.Ssf.GetUUID() {
+		ssf.Logger.WithFields(logrus.Fields{
+			"uuid": ds.UUID,
+		}).Errorln("Ignore local operations.")
+		return nil
+	}
+
+	switch ds.Table {
+	case models.UserTable:
+		var u models.User
+		err := ssf.Serializer.Unmarshal(ds.Data, &u)
+		if err != nil {
+			ssf.Logger.WithFields(logrus.Fields{
+				"err": err,
+			}).Errorln("Unmarshal failed.")
+			return nil
+		}
+
+		switch ds.Type {
+		case models.InsertOp:
+			_, err := models.AddUser(u)
+			if err != nil {
+				ssf.Logger.WithFields(logrus.Fields{
+					"err": err,
+				}).Errorln("AddUser failed.")
+			}
+		case models.UpdateOp:
+			err := models.UpdateUser(u.Username, u)
+			if err != nil {
+				ssf.Logger.WithFields(logrus.Fields{
+					"err": err,
+				}).Errorln("UpdateUser failed.")
+			}
+		case models.DeleteOp:
+			err := models.DeleteUser(u.Username)
+			if err != nil {
+				ssf.Logger.WithFields(logrus.Fields{
+					"err": err,
+				}).Errorln("DeleteUser failed.")
+			}
+		default:
+			ssf.Logger.WithFields(logrus.Fields{
+				"type": ds.Type,
+			}).Errorln("unknown type.")
+		}
+
+	default:
+		ssf.Logger.WithFields(logrus.Fields{
+			"table": ds.Table,
+		}).Errorln("unknown table.")
+	}
+
+	return nil
 }

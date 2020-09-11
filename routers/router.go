@@ -8,7 +8,7 @@
 package routers
 
 import (
-	"dbmanager/controllers"
+	"github.com/go-phd/dbmanager/controllers"
 
 	"github.com/astaxie/beego"
 )

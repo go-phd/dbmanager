@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"dbmanager/models"
 	"encoding/json"
+
+	"github.com/go-phd/dbmanager/models"
+	"github.com/go-phd/ssf"
 
 	"github.com/astaxie/beego"
 )
@@ -75,9 +77,10 @@ func (u *UserController) Get() {
 func (u *UserController) Put() {
 	var user models.User
 	name := u.GetString(":name")
+	ssf.Logger.Debugln(name)
 	if name != "" {
 		json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		err := models.UpdateUser(name, &user)
+		err := models.UpdateUser(name, user)
 		if err != nil {
 			u.Data["json"] = err.Error()
 		} else {

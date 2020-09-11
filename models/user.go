@@ -44,6 +44,22 @@ func AddUser(u User) (string, error) {
 		return "", errors.New("Failed to add a new user.")
 	}
 
+	// 发送 insert 广播
+	data, err := ssf.Serializer.Marshal(u)
+	if err == nil {
+		ds := DbSyncDes{InsertOp, UserTable, ssf.Ssf.GetUUID(), data}
+		err = ssf.MQ.Notify(DbSyncNotify, ds)
+		if err != nil {
+			ssf.Logger.WithFields(logrus.Fields{
+				"err": err,
+			}).Errorln("notify failed.")
+		}
+	} else {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Marshal failed.")
+	}
+
 	return strconv.FormatInt(ret, 10), nil
 }
 
@@ -75,18 +91,18 @@ func GetAllUsers() ([]*User, error) {
 		return nil, err
 	}
 
-	ssf.Logger.Debugln(num, err)
+	ssf.Logger.Debugln(num, err, users)
 	return users, nil
 }
 
 // UpdateUser 更新一条用户信息
-func UpdateUser(name string, user *User) error {
-	ssf.Logger.Debugln(user)
+func UpdateUser(name string, u User) error {
 	ssf.Logger.Debugln(name)
+	ssf.Logger.Debugln(u)
 
 	num, err := orm.NewOrm().QueryTable("user").Filter("Username", name).Update(orm.Params{
-		"Username": user.Username,
-		"Password": user.Password,
+		"Username": u.Username,
+		"Password": u.Password,
 	})
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
@@ -98,8 +114,24 @@ func UpdateUser(name string, user *User) error {
 	if num == 0 {
 		ssf.Logger.WithFields(logrus.Fields{
 			"err": err,
-		}).Errorln("Update failed.")
+		}).Errorln("User Not Exist.")
 		return errors.New("User Not Exist")
+	}
+
+	// 发送 update 广播
+	data, err := ssf.Serializer.Marshal(u)
+	if err == nil {
+		ds := DbSyncDes{UpdateOp, UserTable, ssf.Ssf.GetUUID(), data}
+		err = ssf.MQ.Notify(DbSyncNotify, ds)
+		if err != nil {
+			ssf.Logger.WithFields(logrus.Fields{
+				"err": err,
+			}).Errorln("notify failed.")
+		}
+	} else {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Marshal failed.")
 	}
 
 	ssf.Logger.Debugln(num, err)
@@ -122,8 +154,27 @@ func DeleteUser(name string) error {
 	if num == 0 {
 		ssf.Logger.WithFields(logrus.Fields{
 			"err": err,
-		}).Errorln("Update failed.")
+		}).Errorln("User Not Exist.")
 		return errors.New("User Not Exist")
+	}
+
+	// 发送 delete 广播
+	u := User{
+		Username: name,
+	}
+	data, err := ssf.Serializer.Marshal(u)
+	if err == nil {
+		ds := DbSyncDes{DeleteOp, UserTable, ssf.Ssf.GetUUID(), data}
+		err = ssf.MQ.Notify(DbSyncNotify, ds)
+		if err != nil {
+			ssf.Logger.WithFields(logrus.Fields{
+				"err": err,
+			}).Errorln("notify failed.")
+		}
+	} else {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("Marshal failed.")
 	}
 
 	ssf.Logger.Debugln(num, err)

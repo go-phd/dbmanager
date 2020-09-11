@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "dbmanager/routers"
+	_ "github.com/go-phd/dbmanager/routers"
 
 	"github.com/astaxie/beego"
 )
