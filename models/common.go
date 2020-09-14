@@ -1,6 +1,10 @@
 package models
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"github.com/astaxie/beego/orm"
+	"github.com/go-phd/ssf"
+	uuid "github.com/satori/go.uuid"
+)
 
 // DbSyncNotify 数据库同步广播标识
 const DbSyncNotify = "dbSyncNotify"
@@ -24,4 +28,17 @@ type DbSyncDes struct {
 	Table int       // 1 user
 	UUID  uuid.UUID // 本实例uuid
 	Data  []byte    // 表数据
+}
+
+func init() {
+	orm.RegisterModel(new(User))
+	orm.RegisterModel(new(ZtcNetworkRoute))
+	orm.RegisterModel(new(ZtcGlobalPermissions))
+	orm.RegisterModel(new(ZtcNetwork))
+	orm.RegisterModel(new(ZtcMember))
+	orm.RegisterModel(new(ZtcController))
+	orm.RegisterModel(new(ZtcMemberStatus))
+	orm.RegisterModel(new(ZtcMemberIpAssignment))
+	orm.RegisterModel(new(ZtcNetworkAssignmentPool))
+	ssf.Logger.Infoln("table init success.")
 }

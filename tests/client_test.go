@@ -17,7 +17,7 @@ type User struct {
 }
 
 // TestGet is a sample to run an endpoint test
-func TestGet(t *testing.T) {
+func TestUser(t *testing.T) {
 	var err error
 
 	// Post

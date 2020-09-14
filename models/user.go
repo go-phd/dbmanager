@@ -9,11 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func init() {
-	orm.RegisterModel(new(User))
-	ssf.Logger.Infoln("user table init success.")
-}
-
 // User 用户表
 type User struct {
 	ID       int64 //主键

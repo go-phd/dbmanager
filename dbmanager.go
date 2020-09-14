@@ -45,6 +45,14 @@ func init() {
 		return
 	}
 
+	// 注册 debug cast
+	err = ssf.MQ.RegisterCastMethod("debug", debugCB)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("RegisterCastMethod failed.")
+	}
+
 	ssf.Logger.Infoln("main init success.")
 }
 
@@ -112,6 +120,12 @@ func dbSyncnotifyCB(arg interface{}) interface{} {
 			"table": ds.Table,
 		}).Errorln("unknown table.")
 	}
+
+	return nil
+}
+
+// dbSyncnotifyCB 数据库同步广播回调
+func debugCB(arg interface{}) interface{} {
 
 	return nil
 }
