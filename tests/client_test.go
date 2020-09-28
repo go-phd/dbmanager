@@ -11,9 +11,12 @@ import (
 )
 
 type User struct {
-	ID       int64 //主键
-	Username string
-	Password string
+	Id           int64 //主键
+	Username     string
+	Password     string
+	Group        int
+	ExtendedPerm string
+	StaticPerm   string
 }
 
 // TestGet is a sample to run an endpoint test
@@ -22,13 +25,13 @@ func TestUser(t *testing.T) {
 
 	// Post
 	name := "cytest"
-	ui := User{Username: name, Password: "pw1"}
+	ui := User{Username: name, Password: "pw1", Group: 1}
 	resp, err := ssf.RestClient.Post("DBManager", "v1/users", ui)
 	t.Log("post", ui, "success, rsp =", string(resp), err)
 	require.Nil(t, err, "err must be nil")
 
 	// Post fail
-	ui = User{Username: name, Password: "pw1"}
+	ui = User{Username: name, Password: "pw1", Group: 1}
 	resp, err = ssf.RestClient.Post("DBManager", "v1/users", ui)
 	require.Nil(t, err, "err must be nil")
 	require.Equal(t, strings.Contains(string(resp), "is already exist"), true, "Username is already exist")
@@ -59,7 +62,7 @@ func TestUser(t *testing.T) {
 	// Put
 	newname := "cytest_new"
 	resource = fmt.Sprintf("v1/users/%s", name)
-	ui = User{Username: newname, Password: "pw2"}
+	ui = User{Username: newname, Password: "pw2", Group: 2}
 	resp, err = ssf.RestClient.Put("DBManager", resource, ui)
 	require.Nil(t, err, "err must be nil")
 	t.Log("put", resource, "success, ui = ", ui, "resp", string(resp), err)
@@ -96,7 +99,7 @@ func TestUser(t *testing.T) {
 
 	// Put fail
 	resource = fmt.Sprintf("v1/users/%s", name)
-	ui = User{Username: newname, Password: "pw2"}
+	ui = User{Username: newname, Password: "pw2", Group: 1}
 	resp, err = ssf.RestClient.Put("DBManager", resource, ui)
 	require.Nil(t, err, "err must be nil")
 	require.Equal(t, strings.Contains(string(resp), "User not exist"), true, "User not exist")
