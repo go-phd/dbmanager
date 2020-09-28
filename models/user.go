@@ -11,7 +11,7 @@ import (
 
 // User 用户表
 type User struct {
-	ID       int64 //主键
+	Id       int64 //主键
 	Username string
 	Password string
 }
@@ -30,7 +30,7 @@ func AddUser(u User) (string, error) {
 	}
 
 	// 主键不可设置，只能累加
-	u.ID = 0
+	u.Id = 0
 	ret, err := orm.NewOrm().Insert(&u)
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{

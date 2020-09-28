@@ -1,14 +1,16 @@
 package models
 
+import "time"
+
 // ZtcNetwork 网络表
 type ZtcNetwork struct {
-	ID                int64 //主键
-	CreationTime      int64
+	Id                int64     //主键
+	CreationTime      time.Time `orm:"auto_now_add;type(datetime)"` //第一次保存时才设置时间
 	OwnerId           string
 	ControllerId      string
 	Capabilities      string
 	EnableBroadcast   bool
-	LastModified      int64
+	LastModified      time.Time `orm:"auto_now;type(datetime)"`
 	Mtu               int32
 	Name              string
 	Private           bool

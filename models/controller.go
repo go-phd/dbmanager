@@ -1,10 +1,12 @@
 package models
 
+import "time"
+
 // ZtcController
 type ZtcController struct {
-	ID                         int64 //主键
+	Id                         int64 //主键
 	Cluster_host               string
-	Last_alive                 int64
+	LastAlive                  time.Time `orm:"auto_now;type(datetime)"`
 	Public_identity            string
 	Last_authorized_credential string
 	V_major                    int32

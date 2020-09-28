@@ -1,16 +1,18 @@
 package models
 
+import "time"
+
 // ZtcNetwork 网络表
 type ZtcMember struct {
-	ID                              int64 //主键
-	creation_time                   int64
-	NetworkId                       string
+	Id                              int64     //主键
+	CreationTime                    time.Time `orm:"auto_now_add;type(datetime)"` //第一次保存时才设置时间
+	NetworkId                       string    `orm:"size(16)"`
 	Active_bridge                   bool
 	Authorized                      bool
 	Capabilities                    string
 	Identity                        string
-	Last_authorized_time            int64
-	Last_deauthorized_time          int64
+	LastAuthorizedTime              time.Time `orm:"auto_now;type(datetime)"`
+	LastDeauthorizedTime            time.Time `orm:"auto_now;type(datetime)"`
 	No_auto_assign_ips              string
 	Remote_trace_target             bool
 	Remote_trace_level              string
