@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -9,16 +10,54 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	managerUser      = 1
+	groupManagerUser = 2
+	groupSharerUser  = 3
+)
+
 // User 用户表
 type User struct {
-	Id       int64 //主键
-	Username string
-	Password string
+	Id           int64 //主键
+	Username     string
+	Password     string
+	Group        int
+	ExtendedPerm string `orm:"size(1024)"` // 扩展权限范围
+	StaticPerm   string `orm:"size(512)"`  // 默认权限范围
+}
+
+func getGroupPerm(group int) (string, error) {
+	var err error
+	var staticPerm []byte
+
+	switch group {
+	case managerUser:
+		staticPerm, err = json.Marshal(ssf.SSFConfig.User.Manager)
+	case groupManagerUser:
+		staticPerm, err = json.Marshal(ssf.SSFConfig.User.GroupManager)
+	case groupSharerUser:
+		staticPerm, err = json.Marshal(ssf.SSFConfig.User.GroupSharer)
+	default:
+		errStr := "group invaild."
+		ssf.Logger.WithFields(logrus.Fields{
+			"group": group,
+		}).Errorln(errStr)
+		return "", errors.New(errStr)
+	}
+
+	if err != nil {
+		errStr := "Marshal fail.."
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln(errStr)
+		return "", errors.New(errStr)
+	}
+
+	return string(staticPerm), nil
 }
 
 // AddUser 添加用户
 func AddUser(u User) (string, error) {
-
 	// Username 不能相同
 	_, err := GetUser(u.Username)
 	if err == nil {
@@ -27,6 +66,14 @@ func AddUser(u User) (string, error) {
 			"Username": u.Username,
 		}).Errorln(errStr)
 		return "", errors.New(errStr)
+	}
+
+	u.StaticPerm, err = getGroupPerm(u.Group)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("getGroupPerm.")
+		return "", err
 	}
 
 	// 主键不可设置，只能累加
@@ -92,12 +139,25 @@ func GetAllUsers() ([]*User, error) {
 
 // UpdateUser 更新一条用户信息
 func UpdateUser(name string, u User) error {
+	var err error
+
 	ssf.Logger.Debugln(name)
 	ssf.Logger.Debugln(u)
 
+	u.StaticPerm, err = getGroupPerm(u.Group)
+	if err != nil {
+		ssf.Logger.WithFields(logrus.Fields{
+			"err": err,
+		}).Errorln("getGroupPerm.")
+		return err
+	}
+
 	num, err := orm.NewOrm().QueryTable("user").Filter("Username", name).Update(orm.Params{
-		"Username": u.Username,
-		"Password": u.Password,
+		"Username":     u.Username,
+		"Password":     u.Password,
+		"Group":        u.Group,
+		"ExtendedPerm": u.ExtendedPerm,
+		"StaticPerm":   u.StaticPerm,
 	})
 	if err != nil {
 		ssf.Logger.WithFields(logrus.Fields{
