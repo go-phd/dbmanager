@@ -6,7 +6,8 @@ import (
 )
 
 func init() {
-	beego.GlobalControllerRouter["dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["dbmanager/controllers:UserController"],
+
+	beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "Post",
 			Router:           "/",
@@ -15,7 +16,7 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["dbmanager/controllers:UserController"],
+	beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "GetAll",
 			Router:           "/",
@@ -24,7 +25,7 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["dbmanager/controllers:UserController"],
+	beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "Get",
 			Router:           "/:name",
@@ -33,7 +34,7 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["dbmanager/controllers:UserController"],
+	beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "Put",
 			Router:           "/:name",
@@ -42,7 +43,7 @@ func init() {
 			Filters:          nil,
 			Params:           nil})
 
-	beego.GlobalControllerRouter["dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["dbmanager/controllers:UserController"],
+	beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/go-phd/dbmanager/controllers:UserController"],
 		beego.ControllerComments{
 			Method:           "Delete",
 			Router:           "/:name",
@@ -50,4 +51,5 @@ func init() {
 			MethodParams:     param.Make(),
 			Filters:          nil,
 			Params:           nil})
+
 }
